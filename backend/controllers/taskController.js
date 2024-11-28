@@ -6,7 +6,9 @@ exports.createTask = async (req, res) => {
         { ...req.body, 
             userId: req.user.id 
         })
-    task.totalTime = (new Date(task.endTime) - new Date(task.startTime)) / (1000 * 60 * 60)
+    if (!task.totalTime) {
+      task.totalTime = (new Date(task.endTime) - new Date(task.startTime)) / (1000 * 60 * 60)
+    }
     await task.save()
     res.status(201).json({
       msg : "Task created successfully" , 
@@ -22,6 +24,15 @@ exports.getTasks = async (req, res) => {
   try {
     const tasks = await TaskModel.find({ userId: req.user.id })
     res.status(200).json(tasks)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+exports.getTask = async (req, res) => {
+  try {
+    const task = await TaskModel.find({ _id : req.params.id })
+    res.status(200).json(task)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
@@ -71,7 +82,6 @@ exports.getTaskStats = async (req, res) => {
       const percentCompleted = totalCount ? (completedTasks.length / totalCount) * 100 : 0
       const percentPending = totalCount ? (pendingTasks.length / totalCount) * 100 : 0
 
-      // Calculate total time taken for completed tasks
       const totalCompletedTime = completedTasks.reduce((sum, task) => {
           return sum + (new Date(task.endTime) - new Date(task.startTime)) / (1000 * 60 * 60) // in hours
       }, 0)
@@ -79,7 +89,6 @@ exports.getTaskStats = async (req, res) => {
           ? totalCompletedTime / completedTasks.length
           : 0
 
-      // Calculate time lapsed and balance estimated time for pending tasks
       const currentTime = new Date()
       const timeStats = pendingTasks.reduce(
           (stats, task) => {
@@ -107,13 +116,13 @@ exports.getTaskStats = async (req, res) => {
       const response = {
           totalCount,
           pendingTasks : pendingTasks.length,
-          percentCompleted,
-          totalCompletedTime,
-          percentPending,
-          averageCompletionTime,
-          totalLapsedTime: timeStats.totalLapsedTime,
-          totalBalanceTime: timeStats.totalBalanceTime,
-          priorityBreakdown: timeStats.priorityBreakdown, // Per-priority breakdown of lapsed and remaining time
+          percentCompleted : percentCompleted.toFixed(2),
+          totalCompletedTime : totalCompletedTime.toFixed(2),
+          percentPending : percentPending.toFixed(2),
+          averageCompletionTime : averageCompletionTime.toFixed(2),
+          totalLapsedTime: timeStats.totalLapsedTime.toFixed(2),
+          totalBalanceTime: timeStats.totalBalanceTime.toFixed(2),
+          priorityBreakdown: timeStats.priorityBreakdown, 
       }
 
       res.status(200).json(response)
