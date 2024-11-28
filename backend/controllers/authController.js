@@ -9,7 +9,7 @@ const registerInputs = z.object({
     name : z.string().min(1, "Name cannot be empty")
 })
 
-exports.reigster = async (req, res) => {
+exports.register = async (req, res) => {
 
     const {success} = registerInputs.safeParse(req.body);
     if (!success) {

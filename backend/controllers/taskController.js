@@ -6,6 +6,7 @@ exports.createTask = async (req, res) => {
         { ...req.body, 
             userId: req.user.id 
         })
+    task.totalTime = (new Date(task.endTime) - new Date(task.startTime)) / (1000 * 60 * 60)
     await task.save()
     res.status(201).json({
       msg : "Task created successfully" , 
@@ -105,7 +106,9 @@ exports.getTaskStats = async (req, res) => {
 
       const response = {
           totalCount,
+          pendingTasks : pendingTasks.length,
           percentCompleted,
+          totalCompletedTime,
           percentPending,
           averageCompletionTime,
           totalLapsedTime: timeStats.totalLapsedTime,
