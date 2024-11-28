@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { BASE_URL } from "../../config";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import Header from "../components/Header";
+
 
 // Define interfaces for the task data
 interface Task {
@@ -29,8 +32,7 @@ const TaskList: React.FC = () => {
       try {
         const response = await axios.get(`${BASE_URL}/tasks/`, {
           headers: {
-            Authorization:
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NDg3MTk1ZThhZjVkMzBiZTMxMjNjNSIsImlhdCI6MTczMjgwMDk0NiwiZXhwIjoxNzMyODQ0MTQ2fQ.qswX7E_OK0HgzBhTy8xsA-zThtxb5QK0y-I5Kk-bUG4",
+            Authorization: localStorage.getItem("token")
           },
         });
         if (!response) {
@@ -38,7 +40,6 @@ const TaskList: React.FC = () => {
         }
         const data: Task[] = await response.data;
         setTasks(data);
-        console.log(data);
         
         setFilteredTasks(data);
       } catch (error) {
@@ -99,32 +100,22 @@ const TaskList: React.FC = () => {
 
   return (
     <div className="p-6">
-      {/* Header */}
-      <header className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold">Task List</h1>
-        <button
-          className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
-          onClick={() => {
-            localStorage.removeItem("authToken"); // Clear token (or any other logic)
-            window.location.href = "/"; // Redirect to login
-          }}
-        >
-          Sign Out
-        </button>
-      </header>
-      {/* Filters */}
-      <div className="flex justify-between items-center mb-6">
+      <Header />
+      
+      <div className="flex justify-between items-center mb-6 py-6 ">
         <div className="flex space-x-4">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            + Add Task
-          </button>
+          <Link to={'/createtask'}>
+            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              + Add Task
+            </button>
+          </Link>
           <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
             Delete Selected
           </button>
         </div>
 
         <div className="flex space-x-4">
-          {/* Sort Dropdown */}
+
           <div>
             <label htmlFor="sort" className="block text-sm font-medium">
               Sort:
@@ -145,7 +136,6 @@ const TaskList: React.FC = () => {
             </select>
           </div>
 
-          {/* Priority Filter */}
           <div>
             <label htmlFor="priority" className="block text-sm font-medium">
               Priority:
@@ -168,7 +158,6 @@ const TaskList: React.FC = () => {
             </select>
           </div>
 
-          {/* Status Filter */}
           <div>
             <label htmlFor="status" className="block text-sm font-medium">
               Status:
@@ -189,8 +178,8 @@ const TaskList: React.FC = () => {
           </div>
         </div>
       </div>
-      {/* Task Table */}
-      <table className="w-full border-collapse border border-gray-300">
+
+      <table className="w-full border-collapse border-2 border-gray-600">
         <thead>
           <tr>
             <th className="border border-gray-300 px-4 py-2">Task ID</th>
@@ -218,23 +207,24 @@ const TaskList: React.FC = () => {
               </td>
               <td className="border border-gray-300 px-4 py-2">
                 {new Date(task.startTime).toLocaleString()}
-              </td>{" "}
+              </td>
               <td className="border border-gray-300 px-4 py-2">
                 {new Date(task.endTime).toLocaleString()}
-              </td>{" "}
+              </td>
               <td className="border border-gray-300 px-4 py-2 text-center">
-                {task.totalTime}
-              </td>{" "}
+                {task.totalTime.toFixed(2)}
+              </td>
               <td className="border border-gray-300 px-4 py-2 text-center">
-                {" "}
-                <button className="text-blue-500 hover:text-blue-700">
-                  ✏️
-                </button>{" "}
-              </td>{" "}
+                <Link to={'/updatetask'}>
+                  <button onClick={() => {localStorage.setItem("updateId", task._id)}} className="text-blue-500 hover:text-blue-700">
+                    ✏️
+                  </button>
+                </Link>
+              </td>
             </tr>
-          ))}{" "}
-        </tbody>{" "}
-      </table>{" "}
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
