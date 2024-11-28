@@ -6,6 +6,7 @@ const taskRouter = express.Router()
 taskRouter.use(authenticate)
 taskRouter.post('/', createTask)
 taskRouter.get('/', getTasks)
+taskRouter.get('/stats', getTaskStats)
 taskRouter.put('/:id', updateTask)
 taskRouter.delete('/:id', deleteTask)
 
