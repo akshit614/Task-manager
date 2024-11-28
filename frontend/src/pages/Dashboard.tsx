@@ -11,11 +11,13 @@ interface Stats {
   averageCompletionTime: number,
   totalLapsedTime: number,
   totalBalanceTime: number,
-  priorityBreakdown: object
+  priorityBreakdown: object 
 }
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<Stats[]>([]);
+  const [priorityData, setPrioritydata] = useState({})
+
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
@@ -28,7 +30,9 @@ const Dashboard: React.FC = () => {
           throw new Error('Failed to fetch dashboard data')
         }
         const data : Stats[] = response.data
+        console.log(data.priorityBreakdown);
         setStats(data)
+        setPrioritydata(data.priorityBreakdown)
       } catch (error) {
         console.error('Error fetching dashboard stats:', error)
       }
@@ -91,6 +95,16 @@ const Dashboard: React.FC = () => {
               <th className="border border-gray-200 px-4 py-2">Time to Finish (hrs)</th>
             </tr>
           </thead>
+          <tbody>
+            {Object.entries(priorityData).map(([key,value]) => (
+              <tr key={key}>
+                <td className="border border-gray-200 px-4 py-2 text-center">{key}</td>
+                <td className="border border-gray-200 px-4 py-2 text-center">{key}</td>
+                <td className="border border-gray-200 px-4 py-2 text-center">{value.lapsed.toFixed(2)}</td>
+                <td className="border border-gray-200 px-4 py-2 text-center">{value.remaining}</td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </section>
     </div>
