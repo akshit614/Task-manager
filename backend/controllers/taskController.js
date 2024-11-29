@@ -69,6 +69,30 @@ exports.deleteTask = async (req, res) => {
   }
 }
 
+exports.deleteSelectedTasks = async (req, res) => {
+  try {
+    const { ids } = req.body; 
+    
+    if (!ids || ids.length === 0) {
+      return res.status(400).json({ message: "No tasks selected" });
+    }
+
+    const tasks = await TaskModel.deleteMany({
+      _id: { $in: ids },  
+      userId: req.user.id 
+    });
+
+    if (tasks.deletedCount === 0) {
+      return res.status(404).json({ message: "No tasks found to delete" });
+    }
+
+    res.status(200).json({ message: `${tasks.deletedCount} task(s) deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 
 exports.getTaskStats = async (req, res) => {
   try {
@@ -83,20 +107,20 @@ exports.getTaskStats = async (req, res) => {
       const percentPending = totalCount ? (pendingTasks.length / totalCount) * 100 : 0
 
       const totalCompletedTime = completedTasks.reduce((sum, task) => {
-          return sum + (new Date(task.endTime) - new Date(task.startTime)) / (1000 * 60 * 60) // in hours
+          return sum + (new Date(task.endTime) - new Date(task.startTime)) / (1000 * 60 * 60) 
       }, 0)
       const averageCompletionTime = completedTasks.length
           ? totalCompletedTime / completedTasks.length
           : 0
 
-      const currentTime = new Date()
+      const currentTime = new Date()            
       const timeStats = pendingTasks.reduce(
           (stats, task) => {
-              const timeLapsed = (currentTime - new Date(task.startTime)) / (1000 * 60 * 60) // in hours
+              const timeLapsed = (currentTime - new Date(task.startTime)) / (1000 * 60 * 60) 
               const estimatedRemainingTime = Math.max(
                   (new Date(task.endTime) - currentTime) / (1000 * 60 * 60),
                   0
-              ) // ensure no negative time
+              ) 
 
               stats.totalLapsedTime += timeLapsed
               stats.totalBalanceTime += estimatedRemainingTime
