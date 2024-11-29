@@ -3,14 +3,30 @@ import { BASE_URL } from "../../config";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 
+interface Task {
+  _id: string
+  title: string
+  status: string
+  priority: number
+  startTime: string
+  endTime: string
+}
+
 
 const UpdateTask: React.FC = () => {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<number>(1);
   const [status, setStatus] = useState<"pending" | "finished">("pending");
-  const [startTime, setStartTime] = useState(0);
-  const [endTime, setEndTime] = useState(0);
-  const [task, setTask] = useState([])
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [task, setTask] = useState<Task>({
+    _id: "",
+    title: "",
+    status: "",
+    priority: 1,
+    startTime: "",
+    endTime: ""
+  })
   const navigate  = useNavigate()
   const updateId = localStorage.getItem("updateId")
 
@@ -19,16 +35,16 @@ const UpdateTask: React.FC = () => {
       try {
         const response = await axios.get(`${BASE_URL}/tasks/${updateId}`, {
           headers: {
-            Authorization:
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NDg3MTk1ZThhZjVkMzBiZTMxMjNjNSIsImlhdCI6MTczMjgwMDk0NiwiZXhwIjoxNzMyODQ0MTQ2fQ.qswX7E_OK0HgzBhTy8xsA-zThtxb5QK0y-I5Kk-bUG4",
+            Authorization: localStorage.getItem("token"),
           },
         });
         if (!response) {
           throw new Error("Failed to fetch task");
         }
         const data = await response.data;
-        setTask(data[0]);
-    
+        
+        setTask(data[0])
+        
       } catch (error) {
         console.error("Error fetching task:", error);
       }
@@ -82,7 +98,7 @@ const UpdateTask: React.FC = () => {
           <div className="mb-4">
             <label className="block font-medium mb-2">Priority</label>
             <select
-              aria-placeholder={task.priority}
+              value={task.priority}
               onChange={(e) => setPriority(parseInt(e.target.value))}
               className="w-full px-3 py-2 border rounded"
             >

@@ -8,8 +8,8 @@ const CreateTask: React.FC = () => {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<number>(1);
   const [status, setStatus] = useState<"pending" | "finished">("pending");
-  const [startTime, setStartTime] = useState(Date.now());
-  const [endTime, setEndTime] = useState(0);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const navigate  = useNavigate()
 
   const handleSubmit = async () => {
@@ -97,7 +97,7 @@ const CreateTask: React.FC = () => {
             <label className="block font-medium mb-2">Start Time</label>
             <input
               type="datetime-local"
-              value={startTime}
+              value={startTime.toString()}
               onChange={(e) => setStartTime(e.target.value)}
               className="w-full px-3 py-2 border rounded"
               required

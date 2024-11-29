@@ -11,22 +11,22 @@ interface Task {
   title: string;
   priority: number;
   status: "Pending" | "Finished";
-  startTime: string; // ISO date string
-  endTime: string; // ISO date string
-  totalTime: number; // in hours
+  startTime: string; 
+  endTime: string; 
+  totalTime: number; 
 }
 
 const TaskList: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
-  const [sortField, setSortField] = useState<string>(""); // Field to sort by
-  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("ASC"); // Sort order
+  const [sortField, setSortField] = useState<string>(""); 
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("ASC"); 
   const [priorityFilter, setPriorityFilter] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<
     "Pending" | "Finished" | null
   >(null);
+  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
 
-  // Fetch tasks from the backend
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -49,25 +49,60 @@ const TaskList: React.FC = () => {
     fetchTasks();
   }, []);
 
-  // Apply filters and sorting whenever tasks or filters change
+  // handle selected tasks
+
+  const handleTaskSelect = (taskId: string) => {
+    const updatedSelection = new Set(selectedTasks);
+    if (updatedSelection.has(taskId)) {
+      updatedSelection.delete(taskId); // Deselect task if already selected
+    } else {
+      updatedSelection.add(taskId); // Select task if not already selected
+    }
+    setSelectedTasks(updatedSelection);
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedTasks.size === 0) {
+      alert("No tasks selected");
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`${BASE_URL}/tasks/deleteSelected`, {
+        headers: {
+          Authorization: localStorage.getItem("token"),
+        },
+        data: { ids: Array.from(selectedTasks) }, // Send array of selected task IDs
+      });
+
+      alert(response.data.message);
+      // Remove the deleted tasks from the UI
+      setTasks(tasks.filter((task) => !selectedTasks.has(task._id)));
+      setFilteredTasks(filteredTasks.filter((task) => !selectedTasks.has(task._id)));
+      setSelectedTasks(new Set()); // Clear selected tasks
+    } catch (error) {
+      console.error("Error deleting selected tasks:", error);
+      alert("Error deleting tasks");
+    }
+  };
+
+
+
   useEffect(() => {
     let updatedTasks = [...tasks];
 
-    // Apply priority filter
     if (priorityFilter !== null) {
       updatedTasks = updatedTasks.filter(
         (task) => task.priority === priorityFilter
       );
     }
 
-    // Apply status filter
     if (statusFilter) {
       updatedTasks = updatedTasks.filter(
         (task) => task.status === statusFilter
       );
     }
 
-    // Apply sorting
     if (sortField) {
       updatedTasks.sort((a, b) => {
         if (sortField === "startTime" || sortField === "endTime") {
@@ -101,7 +136,6 @@ const TaskList: React.FC = () => {
   return (
     <div className="p-6">
       <Header />
-      
       <div className="flex justify-between items-center mb-6 py-6 ">
         <div className="flex space-x-4">
           <Link to={'/createtask'}>
@@ -109,7 +143,7 @@ const TaskList: React.FC = () => {
               + Add Task
             </button>
           </Link>
-          <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+          <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onClick={handleDeleteSelected}>
             Delete Selected
           </button>
         </div>
@@ -182,6 +216,20 @@ const TaskList: React.FC = () => {
       <table className="w-full border-collapse border-2 border-gray-600">
         <thead>
           <tr>
+          <th className="border border-gray-300 px-4 py-2">
+              <input
+                type="checkbox"
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    // Select all tasks
+                    setSelectedTasks(new Set(filteredTasks.map((task) => task._id)));
+                  } else {
+                    // Deselect all tasks
+                    setSelectedTasks(new Set());
+                  }
+                }}
+              /> 
+              </th>
             <th className="border border-gray-300 px-4 py-2">Task ID</th>
             <th className="border border-gray-300 px-4 py-2">Title</th>
             <th className="border border-gray-300 px-4 py-2">Priority</th>
@@ -197,6 +245,13 @@ const TaskList: React.FC = () => {
         <tbody>
           {filteredTasks.map((task) => (
             <tr key={task._id}>
+              <td className="border border-gray-300 px-4 py-2">
+                <input
+                  type="checkbox"
+                  checked={selectedTasks.has(task._id)}
+                  onChange={() => handleTaskSelect(task._id)}
+                />
+              </td>
               <td className="border border-gray-300 px-4 py-2">{task._id}</td>
               <td className="border border-gray-300 px-4 py-2">{task.title}</td>
               <td className="border border-gray-300 px-4 py-2 text-center">

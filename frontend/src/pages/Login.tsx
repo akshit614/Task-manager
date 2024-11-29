@@ -19,13 +19,12 @@ const Login = () => {
             })
             const data = await res.data
             const token : string = data.token
-
             localStorage.setItem("token", token)
             
             alert("login success")  
-            navigate('/tasks')         
+            navigate('/dashboard')         
         } catch (error) {
-            alert("error in registering user " + error)
+            alert("error in logging user / Invalid credentials ---" + error)
         }
         
     }
